@@ -1,5 +1,6 @@
 package carnet.dao;
 
+import carnet.config.DatabaseConfig;
 import carnet.model.Croissance;
 
 import java.sql.*;
@@ -8,24 +9,14 @@ import java.util.List;
 
 /**
  * CRUD pour la table Croissance.
- *
  * Colonnes SQL : id_Croissance, dateC, tailleC, PoidsC, id_carnetDeSante
  *
- * CONTRAINTE IMPORTANTE :
- * La table a une contrainte UNIQUE KEY (id_carnetDeSante, dateC).
- * → On ne peut pas avoir deux mesures le même jour pour le même enfant.
- * → La méthode ajouterOuModifier() fait un INSERT ... ON DUPLICATE KEY UPDATE
- *   pour gérer automatiquement ce cas.
+ * Contrainte SQL : UNIQUE KEY (id_carnetDeSante, dateC)
+ * → Une seule mesure par enfant par jour. INSERT ... ON DUPLICATE KEY UPDATE pour UPDATE automatique.
  */
 public class CroissanceDAO {
 
-    // ── INSERT ou UPDATE si mesure déjà existante ce jour ────────────────────
-
-    /**
-     * Si une mesure existe déjà pour ce carnet à cette date → UPDATE.
-     * Sinon → INSERT.
-     * Ceci respecte la contrainte UNIQUE KEY (id_carnetDeSante, dateC).
-     */
+    // ────── CREATE ou UPDATE si dupliqué ──────
     public void ajouterOuModifier(Croissance c) throws SQLException {
         String sql = """
             INSERT INTO Croissance (dateC, tailleC, PoidsC, id_carnetDeSante)
@@ -33,7 +24,7 @@ public class CroissanceDAO {
             ON DUPLICATE KEY UPDATE tailleC = VALUES(tailleC), PoidsC = VALUES(PoidsC)
             """;
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setDate(1, Date.valueOf(c.getDateC()));
@@ -42,17 +33,16 @@ public class CroissanceDAO {
             stmt.setInt(4, c.getIdCarnetDeSante());
 
             stmt.executeUpdate();
-            System.out.println("[CroissanceDAO] Mesure enregistrée : " + c);
+            System.out.println("[CroissanceDAO] ✓ Mesure enregistrée : " + c);
         }
     }
 
-    // ── READ — toutes les mesures d'un carnet (ordonnées par date) ────────────
-
+    // ────── READ ──────
     public List<Croissance> trouverParCarnet(int idCarnetDeSante) throws SQLException {
         String sql = "SELECT * FROM Croissance WHERE id_carnetDeSante = ? ORDER BY dateC";
         List<Croissance> liste = new ArrayList<>();
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idCarnetDeSante);
@@ -62,21 +52,20 @@ public class CroissanceDAO {
         return liste;
     }
 
-    // ── DELETE ───────────────────────────────────────────────────────────────
-
+    // ────── DELETE ──────
     public void supprimer(int idCroissance) throws SQLException {
         String sql = "DELETE FROM Croissance WHERE id_Croissance = ?";
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idCroissance);
             stmt.executeUpdate();
+            System.out.println("[CroissanceDAO] ✓ Supprimé id=" + idCroissance);
         }
     }
 
-    // ── Méthode privée ────────────────────────────────────────────────────────
-
+    // ────── PRIVÉE ──────
     private Croissance construire(ResultSet rs) throws SQLException {
         Croissance c = new Croissance();
         c.setIdCroissance(rs.getInt("id_Croissance"));

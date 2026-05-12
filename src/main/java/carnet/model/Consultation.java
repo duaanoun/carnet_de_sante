@@ -3,25 +3,25 @@ package carnet.model;
 import java.time.LocalDateTime;
 
 /**
- * Correspond à la table : Consultation
- * Colonnes : id_consultation, date_Cons, motifC, statutC,
- *            id_carnetDeSante, id_medecin
+ * Représente une consultation de la table Consultation.
+ * Colonnes SQL : id_consultation, date_Cons, motifC, statutC,
+ *                id_carnetDeSante, id_medecin
+ *
+ * ENUM statutC : 'planifiee' | 'realisee' | 'annulee'
  */
 public class Consultation {
 
     private int           idConsultation;
     private LocalDateTime dateCons;
     private String        motifC;
-    // ENUM MySQL : 'planifiee' | 'realisee' | 'annulee'
-    private String        statutC;
+    private String        statutC;       // ENUM
     private int           idCarnetDeSante;
-    private int           idMedecin; // Référence vers Medecin (géré en C++)
+    private int           idMedecin;
 
     public Consultation() {}
 
-    public Consultation(int idConsultation, LocalDateTime dateCons,
-                        String motifC, String statutC,
-                        int idCarnetDeSante, int idMedecin) {
+    public Consultation(int idConsultation, LocalDateTime dateCons, String motifC,
+                        String statutC, int idCarnetDeSante, int idMedecin) {
         this.idConsultation  = idConsultation;
         this.dateCons        = dateCons;
         this.motifC          = motifC;
@@ -30,7 +30,7 @@ public class Consultation {
         this.idMedecin       = idMedecin;
     }
 
-    // Getters
+    // ────── GETTERS ──────
     public int           getIdConsultation()  { return idConsultation; }
     public LocalDateTime getDateCons()        { return dateCons; }
     public String        getMotifC()          { return motifC; }
@@ -38,7 +38,7 @@ public class Consultation {
     public int           getIdCarnetDeSante() { return idCarnetDeSante; }
     public int           getIdMedecin()       { return idMedecin; }
 
-    // Setters
+    // ────── SETTERS ──────
     public void setIdConsultation(int id)       { this.idConsultation = id; }
     public void setDateCons(LocalDateTime d)    { this.dateCons = d; }
     public void setMotifC(String motif)         { this.motifC = motif; }

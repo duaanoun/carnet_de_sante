@@ -1,5 +1,6 @@
 package carnet.dao;
 
+import carnet.config.DatabaseConfig;
 import carnet.model.Consultation;
 
 import java.sql.*;
@@ -8,23 +9,21 @@ import java.util.List;
 
 /**
  * CRUD pour la table Consultation.
+ * Colonnes SQL : id_consultation, date_Cons, motifC, statutC,
+ *                id_carnetDeSante, id_medecin
  *
- * Noms des colonnes SQL : id_consultation, date_Cons, motifC, statutC,
- *                         id_carnetDeSante, id_medecin
- *
- * statutC ENUM : 'planifiee' | 'realisee' | 'annulee'
+ * ENUM statutC : 'planifiee' | 'realisee' | 'annulee'
  */
 public class ConsultationDAO {
 
-    // ── CREATE ───────────────────────────────────────────────────────────────
-
+    // ────── CREATE ──────
     public void ajouter(Consultation c) throws SQLException {
         String sql = """
             INSERT INTO Consultation (date_Cons, motifC, statutC, id_carnetDeSante, id_medecin)
             VALUES (?, ?, ?, ?, ?)
             """;
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setTimestamp(1, Timestamp.valueOf(c.getDateCons()));
@@ -34,17 +33,16 @@ public class ConsultationDAO {
             stmt.setInt(5, c.getIdMedecin());
 
             stmt.executeUpdate();
-            System.out.println("[ConsultationDAO] Ajouté : " + c);
+            System.out.println("[ConsultationDAO] ✓ Ajouté : " + c);
         }
     }
 
-    // ── READ — toutes les consultations d'un carnet ───────────────────────────
-
+    // ────── READ ──────
     public List<Consultation> trouverParCarnet(int idCarnetDeSante) throws SQLException {
         String sql = "SELECT * FROM Consultation WHERE id_carnetDeSante = ? ORDER BY date_Cons DESC";
         List<Consultation> liste = new ArrayList<>();
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idCarnetDeSante);
@@ -54,35 +52,34 @@ public class ConsultationDAO {
         return liste;
     }
 
-    // ── UPDATE statut (planifiee → realisee ou annulee) ───────────────────────
-
+    // ────── UPDATE ──────
     public void modifierStatut(int idConsultation, String nouveauStatut) throws SQLException {
         String sql = "UPDATE Consultation SET statutC = ? WHERE id_consultation = ?";
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, nouveauStatut);
             stmt.setInt(2, idConsultation);
             stmt.executeUpdate();
+            System.out.println("[ConsultationDAO] ✓ Statut mis à jour : " + nouveauStatut);
         }
     }
 
-    // ── DELETE ───────────────────────────────────────────────────────────────
-
+    // ────── DELETE ──────
     public void supprimer(int idConsultation) throws SQLException {
         String sql = "DELETE FROM Consultation WHERE id_consultation = ?";
 
-        try (Connection conn = DatabaseConnection.getConnexion();
+        try (Connection conn = DatabaseConfig.getConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idConsultation);
             stmt.executeUpdate();
+            System.out.println("[ConsultationDAO] ✓ Supprimé id=" + idConsultation);
         }
     }
 
-    // ── Méthode privée ────────────────────────────────────────────────────────
-
+    // ────── PRIVÉE ──────
     private Consultation construire(ResultSet rs) throws SQLException {
         Consultation c = new Consultation();
         c.setIdConsultation(rs.getInt("id_consultation"));

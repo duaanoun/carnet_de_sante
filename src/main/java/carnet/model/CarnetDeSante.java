@@ -4,22 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Correspond à la table : carnetDeSante
- * (table pivot qui relie Enfant à toutes ses données médicales)
- *
- * En Java, on l'utilise aussi comme "conteneur" pour l'affichage
- * de l'historique médical complet d'un enfant.
+ * Représente un carnet de santé — conteneur des données médicales d'un enfant.
+ * Utilité : regrouper vaccinations, consultations, examens, croissance.
+ * Affiché dans HistoriqueController.
  */
 public class CarnetDeSante {
 
-    private int idCarnetDeSante;
-
-    // Données médicales regroupées (chargées par HistoriqueController)
+    private int               idCarnetDeSante;
     private Enfant            enfant;
-    private List<Consultation> consultations  = new ArrayList<>();
-    private List<Vaccination>  vaccinations   = new ArrayList<>();
-    private List<Examen>       examens        = new ArrayList<>();
-    private List<Croissance>   mesuresCroissance = new ArrayList<>();
+    private List<Consultation> consultations      = new ArrayList<>();
+    private List<Vaccination>  vaccinations       = new ArrayList<>();
+    private List<Examen>       examens            = new ArrayList<>();
+    private List<Croissance>   mesuresCroissance  = new ArrayList<>();
 
     public CarnetDeSante() {}
 
@@ -28,15 +24,15 @@ public class CarnetDeSante {
         this.enfant          = enfant;
     }
 
-    // Getters
-    public int               getIdCarnetDeSante()    { return idCarnetDeSante; }
-    public Enfant            getEnfant()              { return enfant; }
-    public List<Consultation> getConsultations()      { return consultations; }
-    public List<Vaccination>  getVaccinations()       { return vaccinations; }
-    public List<Examen>       getExamens()            { return examens; }
-    public List<Croissance>   getMesuresCroissance()  { return mesuresCroissance; }
+    // ────── GETTERS ──────
+    public int               getIdCarnetDeSante()   { return idCarnetDeSante; }
+    public Enfant            getEnfant()             { return enfant; }
+    public List<Consultation> getConsultations()     { return consultations; }
+    public List<Vaccination>  getVaccinations()      { return vaccinations; }
+    public List<Examen>       getExamens()           { return examens; }
+    public List<Croissance>   getMesuresCroissance() { return mesuresCroissance; }
 
-    // Setters
+    // ────── SETTERS ──────
     public void setIdCarnetDeSante(int id)                { this.idCarnetDeSante = id; }
     public void setEnfant(Enfant enfant)                  { this.enfant = enfant; }
     public void setConsultations(List<Consultation> l)    { this.consultations = l; }

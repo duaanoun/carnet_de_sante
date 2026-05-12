@@ -4,115 +4,107 @@ import carnet.dao.ConsultationDAO;
 import carnet.dao.EnfantDAO;
 import carnet.model.Consultation;
 import carnet.model.Enfant;
+import carnet.session.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller pour la gestion des consultations médicales.
+ * Gère les consultations médicales (ajout, modification statut, suppression).
  * Lié à ConsultationView.fxml
  *
- * Gère le statut ENUM : planifiee / realisee / annulee
+ * ENUM statutC : planifiee | realisee | annulee
  */
 public class ConsultationController {
 
-    // ── Composants FXML ───────────────────────────────────────────────────────
-    @FXML private ChoiceBox<Enfant>                    champEnfant;
-    @FXML private DatePicker                           champDate;       // → date_Cons
-    @FXML private TextField                            champMotif;      // → motifC
-    @FXML private ChoiceBox<String>                    champStatut;     // → statutC ENUM
-    @FXML private TableView<Consultation>              tableConsultations;
-    @FXML private TableColumn<Consultation, String>    colDate;
-    @FXML private TableColumn<Consultation, String>    colMotif;
-    @FXML private TableColumn<Consultation, String>    colStatut;
+    @FXML private ChoiceBox<Enfant>              champEnfant;
+    @FXML private DatePicker                     champDate;
+    @FXML private TextField                      champMotif;
+    @FXML private ChoiceBox<String>              champStatut;
+    @FXML private TableView<Consultation>        tableConsultations;
+    @FXML private TableColumn<Consultation, String> colDate;
+    @FXML private TableColumn<Consultation, String> colMotif;
+    @FXML private TableColumn<Consultation, String> colStatut;
 
-    // ── Dépendances ───────────────────────────────────────────────────────────
     private final ConsultationDAO consultationDAO = new ConsultationDAO();
     private final EnfantDAO       enfantDAO       = new EnfantDAO();
 
-    private int idParentConnecte = 1; // ← Remplacer
-
-    // ── Initialisation ────────────────────────────────────────────────────────
+    // ────── INIT ──────
     @FXML
     public void initialize() {
-        // Valeurs de l'ENUM MySQL
         champStatut.setItems(FXCollections.observableArrayList("planifiee", "realisee", "annulee"));
-        champStatut.setValue("planifiee"); // Valeur par défaut
-
+        champStatut.setValue("planifiee");
         chargerEnfants();
         champEnfant.setOnAction(e -> chargerConsultations());
     }
 
-    // ── Bouton : Ajouter ──────────────────────────────────────────────────────
+    // ────── BOUTONS ──────
     @FXML
     public void onAjouter() {
         Enfant enfant = champEnfant.getValue();
-        if (enfant == null) { afficherErreur("Sélectionnez un enfant."); return; }
-        if (champDate.getValue() == null) { afficherErreur("La date est obligatoire."); return; }
-        if (champMotif.getText().isBlank()) { afficherErreur("Le motif est obligatoire."); return; }
+        if (enfant == null) { alerte("Sélectionnez un enfant", AlertType.WARNING); return; }
+        if (champDate.getValue() == null) { alerte("Date obligatoire", AlertType.WARNING); return; }
+        if (champMotif.getText().isBlank()) { alerte("Motif obligatoire", AlertType.WARNING); return; }
 
         Consultation c = new Consultation();
         c.setIdCarnetDeSante(enfant.getIdCarnetDeSante());
-        // date_Cons est DATETIME → on utilise LocalDateTime avec heure à minuit par défaut
         c.setDateCons(champDate.getValue().atStartOfDay());
         c.setMotifC(champMotif.getText().trim());
         c.setStatutC(champStatut.getValue());
-        c.setIdMedecin(0); // Médecin géré en C++
+        c.setIdMedecin(0);
 
         try {
             consultationDAO.ajouter(c);
             chargerConsultations();
-            viderFormulaire();
-            afficherSucces("Consultation planifiée.");
+            vider();
+            alerte("✓ Consultation planifiée", AlertType.INFORMATION);
         } catch (SQLException e) {
-            afficherErreur("Erreur : " + e.getMessage());
+            alerte("✗ Erreur : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
-    // ── Bouton : Modifier statut ──────────────────────────────────────────────
     @FXML
     public void onModifierStatut() {
         Consultation sel = tableConsultations.getSelectionModel().getSelectedItem();
-        if (sel == null) { afficherErreur("Sélectionnez une consultation."); return; }
+        if (sel == null) { alerte("Sélectionnez une consultation", AlertType.WARNING); return; }
         String nouveau = champStatut.getValue();
-        if (nouveau == null) { afficherErreur("Sélectionnez un statut."); return; }
+        if (nouveau == null) { alerte("Sélectionnez un statut", AlertType.WARNING); return; }
 
         try {
             consultationDAO.modifierStatut(sel.getIdConsultation(), nouveau);
             chargerConsultations();
-            afficherSucces("Statut mis à jour : " + nouveau);
+            alerte("✓ Statut mis à jour : " + nouveau, AlertType.INFORMATION);
         } catch (SQLException e) {
-            afficherErreur("Erreur : " + e.getMessage());
+            alerte("✗ Erreur : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
-    // ── Bouton : Supprimer ────────────────────────────────────────────────────
     @FXML
     public void onSupprimer() {
         Consultation sel = tableConsultations.getSelectionModel().getSelectedItem();
-        if (sel == null) { afficherErreur("Sélectionnez une consultation."); return; }
+        if (sel == null) { alerte("Sélectionnez une consultation", AlertType.WARNING); return; }
 
         try {
             consultationDAO.supprimer(sel.getIdConsultation());
             chargerConsultations();
+            alerte("✓ Consultation supprimée", AlertType.INFORMATION);
         } catch (SQLException e) {
-            afficherErreur("Erreur suppression : " + e.getMessage());
+            alerte("✗ Erreur : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
-    // ── Méthodes privées ──────────────────────────────────────────────────────
-
+    // ────── UTILITAIRES ──────
     private void chargerEnfants() {
         try {
-            List<Enfant> enfants = enfantDAO.trouverParParent(idParentConnecte);
+            int idParent = SessionManager.getInstance().getIdParent();
+            List<Enfant> enfants = enfantDAO.trouverParParent(idParent);
             champEnfant.setItems(FXCollections.observableArrayList(enfants));
         } catch (SQLException e) {
-            afficherErreur("Impossible de charger les enfants.");
+            alerte("✗ Impossible de charger : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
@@ -123,21 +115,17 @@ public class ConsultationController {
             List<Consultation> liste = consultationDAO.trouverParCarnet(enfant.getIdCarnetDeSante());
             tableConsultations.setItems(FXCollections.observableArrayList(liste));
         } catch (SQLException e) {
-            afficherErreur("Impossible de charger les consultations.");
+            alerte("✗ Impossible de charger : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
-    private void viderFormulaire() {
+    private void vider() {
         champDate.setValue(null);
         champMotif.clear();
         champStatut.setValue("planifiee");
     }
 
-    private void afficherSucces(String msg) {
-        new Alert(AlertType.INFORMATION, msg, ButtonType.OK).showAndWait();
-    }
-
-    private void afficherErreur(String msg) {
-        new Alert(AlertType.ERROR, msg, ButtonType.OK).showAndWait();
+    private void alerte(String msg, AlertType type) {
+        new Alert(type, msg, ButtonType.OK).showAndWait();
     }
 }

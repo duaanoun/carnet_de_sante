@@ -2,6 +2,7 @@ package carnet.controller;
 
 import carnet.dao.EnfantDAO;
 import carnet.model.Enfant;
+import carnet.session.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -11,134 +12,115 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Controller pour la gestion des enfants.
+ * Gère l'ajout, modification, suppression des enfants.
  * Lié à EnfantView.fxml
  *
- * Responsabilités :
- *   - Afficher la liste des enfants du parent connecté
- *   - Ajouter / Modifier / Supprimer un enfant
+ * Simple et clair :
+ *   1. Charger la liste des enfants du parent connecté
+ *   2. Ajouter/Modifier/Supprimer
+ *   3. Afficher erreurs avec Alert
  */
 public class EnfantController {
 
-    // ── Composants FXML ───────────────────────────────────────────────────────
-    @FXML private TableView<Enfant>              tableEnfants;
-    @FXML private TableColumn<Enfant, String>    colNom;
-    @FXML private TableColumn<Enfant, String>    colPrenom;
-    @FXML private TableColumn<Enfant, String>    colDateNaissance;
-    @FXML private TableColumn<Enfant, String>    colSexe;
-    @FXML private TableColumn<Enfant, String>    colGroupeSanguin;
+    @FXML private TableView<Enfant>           tableEnfants;
+    @FXML private TableColumn<Enfant, String> colNom;
+    @FXML private TableColumn<Enfant, String> colPrenom;
+    @FXML private TableColumn<Enfant, String> colDateNaissance;
+    @FXML private TableColumn<Enfant, String> colSexe;
 
-    @FXML private TextField         champNom;           // → NomEn
-    @FXML private TextField         champPrenom;        // → PrenomEN
-    @FXML private DatePicker        champDateNaissance; // → dateNaissance
-    @FXML private ChoiceBox<String> champSexe;          // → sexe ENUM
-    @FXML private TextField         champGroupeSanguin; // → groupeSanguin (optionnel)
+    @FXML private TextField      champNom;
+    @FXML private TextField      champPrenom;
+    @FXML private DatePicker     champDateNaissance;
+    @FXML private ChoiceBox<String> champSexe;
+    @FXML private TextField      champGroupeSanguin;
 
-    // ── Dépendances ───────────────────────────────────────────────────────────
     private final EnfantDAO enfantDAO = new EnfantDAO();
 
-    // ID du parent connecté — transmis depuis la session C++ (fichier ou argument)
-    private int idParentConnecte = 1; // ← Remplacer par la valeur réelle
-
-    // ── Initialisation JavaFX ─────────────────────────────────────────────────
+    // ────── INIT ──────
     @FXML
     public void initialize() {
         champSexe.setItems(FXCollections.observableArrayList("M", "F"));
-
-        // Remplir le formulaire quand on clique sur un enfant dans la table
         tableEnfants.getSelectionModel().selectedItemProperty().addListener(
-            (obs, ancien, selectionne) -> {
-                if (selectionne != null) remplirFormulaire(selectionne);
+            (obs, ancien, nouveau) -> {
+                if (nouveau != null) remplirFormulaire(nouveau);
             }
         );
-
         chargerEnfants();
     }
 
-    // ── Bouton : Ajouter ──────────────────────────────────────────────────────
+    // ────── BOUTONS ──────
     @FXML
     public void onAjouter() {
-        if (!formulaireValide()) return;
+        if (!valider()) return;
 
         Enfant enfant = new Enfant();
         enfant.setNom(champNom.getText().trim());
         enfant.setPrenom(champPrenom.getText().trim());
         enfant.setDateNaissance(champDateNaissance.getValue());
         enfant.setSexe(champSexe.getValue());
-        enfant.setGroupeSanguin(champGroupeSanguin.getText().trim().isEmpty()
-                                ? null : champGroupeSanguin.getText().trim());
-        enfant.setIdParent(idParentConnecte);
+        enfant.setGroupeSanguin(champGroupeSanguin.getText().trim().isEmpty() ? null : champGroupeSanguin.getText().trim());
+        enfant.setIdParent(SessionManager.getInstance().getIdParent());
 
         try {
             enfantDAO.ajouter(enfant);
             chargerEnfants();
-            viderFormulaire();
-            afficherSucces("Enfant ajouté avec succès.");
+            vider();
+            alerte("✓ Enfant ajouté avec succès", AlertType.INFORMATION);
         } catch (SQLException e) {
-            afficherErreur("Erreur lors de l'ajout :\n" + e.getMessage());
+            alerte("✗ Erreur : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
-    // ── Bouton : Modifier ─────────────────────────────────────────────────────
     @FXML
     public void onModifier() {
-        Enfant selectionne = tableEnfants.getSelectionModel().getSelectedItem();
-        if (selectionne == null) {
-            afficherErreur("Sélectionnez un enfant à modifier.");
-            return;
-        }
-        if (!formulaireValide()) return;
+        Enfant sel = tableEnfants.getSelectionModel().getSelectedItem();
+        if (sel == null) { alerte("Sélectionnez un enfant", AlertType.WARNING); return; }
+        if (!valider()) return;
 
-        selectionne.setNom(champNom.getText().trim());
-        selectionne.setPrenom(champPrenom.getText().trim());
-        selectionne.setDateNaissance(champDateNaissance.getValue());
-        selectionne.setSexe(champSexe.getValue());
-        selectionne.setGroupeSanguin(champGroupeSanguin.getText().trim().isEmpty()
-                                     ? null : champGroupeSanguin.getText().trim());
+        sel.setNom(champNom.getText().trim());
+        sel.setPrenom(champPrenom.getText().trim());
+        sel.setDateNaissance(champDateNaissance.getValue());
+        sel.setSexe(champSexe.getValue());
+        sel.setGroupeSanguin(champGroupeSanguin.getText().trim().isEmpty() ? null : champGroupeSanguin.getText().trim());
 
         try {
-            enfantDAO.modifier(selectionne);
+            enfantDAO.modifier(sel);
             chargerEnfants();
-            viderFormulaire();
-            afficherSucces("Enfant modifié avec succès.");
+            vider();
+            alerte("✓ Enfant modifié", AlertType.INFORMATION);
         } catch (SQLException e) {
-            afficherErreur("Erreur lors de la modification :\n" + e.getMessage());
+            alerte("✗ Erreur : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
-    // ── Bouton : Supprimer ────────────────────────────────────────────────────
     @FXML
     public void onSupprimer() {
-        Enfant selectionne = tableEnfants.getSelectionModel().getSelectedItem();
-        if (selectionne == null) {
-            afficherErreur("Sélectionnez un enfant à supprimer.");
-            return;
-        }
+        Enfant sel = tableEnfants.getSelectionModel().getSelectedItem();
+        if (sel == null) { alerte("Sélectionnez un enfant", AlertType.WARNING); return; }
 
-        Alert confirm = new Alert(AlertType.CONFIRMATION,
-            "Supprimer " + selectionne.getPrenom() + " " + selectionne.getNom() + " ?",
-            ButtonType.YES, ButtonType.NO);
-        confirm.showAndWait().ifPresent(rep -> {
+        Alert conf = new Alert(AlertType.CONFIRMATION, "Supprimer " + sel.getPrenom() + " ?", ButtonType.YES, ButtonType.NO);
+        conf.showAndWait().ifPresent(rep -> {
             if (rep == ButtonType.YES) {
                 try {
-                    enfantDAO.supprimer(selectionne.getIdEnfant());
+                    enfantDAO.supprimer(sel.getIdEnfant());
                     chargerEnfants();
-                    viderFormulaire();
+                    vider();
+                    alerte("✓ Enfant supprimé", AlertType.INFORMATION);
                 } catch (SQLException e) {
-                    afficherErreur("Erreur suppression :\n" + e.getMessage());
+                    alerte("✗ Erreur : " + e.getMessage(), AlertType.ERROR);
                 }
             }
         });
     }
 
-    // ── Méthodes utilitaires privées ──────────────────────────────────────────
-
+    // ────── UTILITAIRES ──────
     private void chargerEnfants() {
         try {
-            List<Enfant> enfants = enfantDAO.trouverParParent(idParentConnecte);
+            int idParent = SessionManager.getInstance().getIdParent();
+            List<Enfant> enfants = enfantDAO.trouverParParent(idParent);
             tableEnfants.setItems(FXCollections.observableArrayList(enfants));
         } catch (SQLException e) {
-            afficherErreur("Impossible de charger les enfants :\n" + e.getMessage());
+            alerte("✗ Impossible de charger : " + e.getMessage(), AlertType.ERROR);
         }
     }
 
@@ -150,7 +132,7 @@ public class EnfantController {
         champGroupeSanguin.setText(e.getGroupeSanguin() != null ? e.getGroupeSanguin() : "");
     }
 
-    private void viderFormulaire() {
+    private void vider() {
         champNom.clear();
         champPrenom.clear();
         champDateNaissance.setValue(null);
@@ -159,27 +141,23 @@ public class EnfantController {
         tableEnfants.getSelectionModel().clearSelection();
     }
 
-    private boolean formulaireValide() {
+    private boolean valider() {
         if (champNom.getText().isBlank() || champPrenom.getText().isBlank()) {
-            afficherErreur("Le nom et le prénom sont obligatoires.");
+            alerte("Nom et prénom obligatoires", AlertType.WARNING);
             return false;
         }
         if (champDateNaissance.getValue() == null) {
-            afficherErreur("La date de naissance est obligatoire.");
+            alerte("Sélectionnez une date", AlertType.WARNING);
             return false;
         }
         if (champSexe.getValue() == null) {
-            afficherErreur("Veuillez sélectionner le sexe.");
+            alerte("Sélectionnez M ou F", AlertType.WARNING);
             return false;
         }
         return true;
     }
 
-    private void afficherSucces(String msg) {
-        new Alert(AlertType.INFORMATION, msg, ButtonType.OK).showAndWait();
-    }
-
-    private void afficherErreur(String msg) {
-        new Alert(AlertType.ERROR, msg, ButtonType.OK).showAndWait();
+    private void alerte(String msg, AlertType type) {
+        new Alert(type, msg, ButtonType.OK).showAndWait();
     }
 }

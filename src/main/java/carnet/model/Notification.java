@@ -3,24 +3,24 @@ package carnet.model;
 import java.time.LocalDateTime;
 
 /**
- * Correspond à la table : Notification
- * Colonnes : id_notification, message, dateEnvoiNot, statutNot, id_enfant
+ * Représente une notification de la table Notification.
+ * Colonnes SQL : id_notification, message, dateEnvoiNot, statutNot, id_enfant
  *
- * Utilisée pour les rappels vaccins et consultations.
+ * ENUM statutNot : 'non_lu' | 'lu'
+ * Utilisé pour les rappels vaccins et consultations.
  */
 public class Notification {
 
     private int           idNotification;
     private String        message;
     private LocalDateTime dateEnvoiNot;
-    // ENUM MySQL : 'non_lu' | 'lu'
-    private String        statutNot;
+    private String        statutNot;     // ENUM
     private int           idEnfant;
 
     public Notification() {}
 
-    public Notification(int idNotification, String message,
-                        LocalDateTime dateEnvoiNot, String statutNot, int idEnfant) {
+    public Notification(int idNotification, String message, LocalDateTime dateEnvoiNot,
+                        String statutNot, int idEnfant) {
         this.idNotification = idNotification;
         this.message        = message;
         this.dateEnvoiNot   = dateEnvoiNot;
@@ -28,14 +28,14 @@ public class Notification {
         this.idEnfant       = idEnfant;
     }
 
-    // Getters
+    // ────── GETTERS ──────
     public int           getIdNotification() { return idNotification; }
     public String        getMessage()        { return message; }
     public LocalDateTime getDateEnvoiNot()   { return dateEnvoiNot; }
     public String        getStatutNot()      { return statutNot; }
     public int           getIdEnfant()       { return idEnfant; }
 
-    // Setters
+    // ────── SETTERS ──────
     public void setIdNotification(int id)        { this.idNotification = id; }
     public void setMessage(String message)       { this.message = message; }
     public void setDateEnvoiNot(LocalDateTime d) { this.dateEnvoiNot = d; }

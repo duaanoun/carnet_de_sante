@@ -3,8 +3,8 @@ package carnet.model;
 import java.time.LocalDate;
 
 /**
- * Correspond à la table : Examen
- * Colonnes : id_examen, dateExamen, details, id_carnetDeSante, id_medecin
+ * Représente un examen de la table Examen.
+ * Colonnes SQL : id_examen, dateExamen, details, id_carnetDeSante, id_medecin
  */
 public class Examen {
 
@@ -25,14 +25,14 @@ public class Examen {
         this.idMedecin       = idMedecin;
     }
 
-    // Getters
+    // ────── GETTERS ──────
     public int       getIdExamen()        { return idExamen; }
     public LocalDate getDateExamen()      { return dateExamen; }
     public String    getDetails()         { return details; }
     public int       getIdCarnetDeSante() { return idCarnetDeSante; }
     public int       getIdMedecin()       { return idMedecin; }
 
-    // Setters
+    // ────── SETTERS ──────
     public void setIdExamen(int id)        { this.idExamen = id; }
     public void setDateExamen(LocalDate d) { this.dateExamen = d; }
     public void setDetails(String details) { this.details = details; }
