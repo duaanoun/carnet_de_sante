@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="carnet.controller.HistoriqueController"
+            style="-fx-font-family: 'Segoe UI'; -fx-font-size: 11;">
+
+    <!-- HAUT : Titre et sélection -->
+    <top>
+        <VBox spacing="10" style="-fx-background-color: #3498db; -fx-padding: 15;">
+            <Label text="Historique Médical Complet" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
+            <HBox spacing="10">
+                <Label text="Enfant :" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                <ChoiceBox fx:id="champEnfant" prefWidth="200" style="-fx-font-size: 10;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="🔄 Actualiser" onAction="#onActualiser" style="-fx-padding: 5; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Infos enfant -->
+    <center>
+        <VBox spacing="10" style="-fx-padding: 15;">
+            <Label fx:id="labelInfoEnfant" text="Infos enfant" style="-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #2c3e50;"/>
+
+            <!-- Onglets -->
+            <TabPane style="-fx-font-size: 10;" VBox.vgrow="ALWAYS">
+                <!-- Onglet Vaccinations -->
+                <Tab text="💉 Vaccinations" closable="false">
+                    <ListView fx:id="listeVaccinations"/>
+                </Tab>
+
+                <!-- Onglet Consultations -->
+                <Tab text="🩺 Consultations" closable="false">
+                    <ListView fx:id="listeConsultations"/>
+                </Tab>
+
+                <!-- Onglet Examens -->
+                <Tab text="📋 Examens" closable="false">
+                    <ListView fx:id="listeExamens"/>
+                </Tab>
+
+                <!-- Onglet Croissance -->
+                <Tab text="📏 Croissance" closable="false">
+                    <ListView fx:id="listeCroissance"/>
+                </Tab>
+
+                <!-- Onglet Notifications -->
+                <Tab text="🔔 Notifications" closable="false">
+                    <ListView fx:id="listeNotifications"/>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </center>
+</BorderPane>

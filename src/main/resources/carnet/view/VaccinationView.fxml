@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="carnet.controller.VaccinationController"
+            style="-fx-font-family: 'Segoe UI'; -fx-font-size: 11;">
+
+    <!-- HAUT : Titre -->
+    <top>
+        <VBox style="-fx-background-color: #8e44ad; -fx-padding: 15;">
+            <Label text="Gestion des Vaccinations" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
+        </VBox>
+    </top>
+
+    <!-- CENTRE : Sélection enfant + Table + Formulaire -->
+    <center>
+        <VBox spacing="10" style="-fx-padding: 15;">
+            <!-- Sélection enfant -->
+            <HBox spacing="10">
+                <Label text="Enfant :" style="-fx-font-weight: bold;"/>
+                <ChoiceBox fx:id="champEnfant" prefWidth="200"/>
+            </HBox>
+
+            <!-- Table -->
+            <TableView fx:id="tableVaccinations" style="-fx-font-size: 10;" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colVaccin" text="Vaccin" prefWidth="150"/>
+                    <TableColumn fx:id="colDate" text="Date" prefWidth="120"/>
+                    <TableColumn fx:id="colDose" text="Dose" prefWidth="60"/>
+                </columns>
+            </TableView>
+
+            <!-- Formulaire -->
+            <VBox spacing="10" style="-fx-border-top: 1 solid #ccc; -fx-padding-top: 15;">
+                <Label text="Ajouter une vaccination" style="-fx-font-weight: bold; -fx-font-size: 12;"/>
+
+                <HBox spacing="10">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Nom du vaccin" style="-fx-font-size: 10;"/>
+                        <TextField fx:id="champNomVaccin" promptText="ex: ROR, DTP"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Date" style="-fx-font-size: 10;"/>
+                        <DatePicker fx:id="champDateVaccin"/>
+                    </VBox>
+
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Dose" style="-fx-font-size: 10;"/>
+                        <Spinner fx:id="champDose" prefWidth="100"/>
+                    </VBox>
+                </HBox>
+
+                <HBox spacing="10">
+                    <Button text="➕ Ajouter" onAction="#onAjouter" style="-fx-padding: 8; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+                    <Button text="🗑️ Supprimer" onAction="#onSupprimer" style="-fx-padding: 8; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>
